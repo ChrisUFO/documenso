@@ -22,7 +22,9 @@ RUN npm install -g "turbo@^1.9.3"
 
 # Outputs to the /out folder
 # source: https://turbo.build/repo/docs/reference/command-line-reference/prune#--docker
-RUN turbo prune --scope=@documenso/remix --docker --package-manager=npm
+RUN jq --arg pm "npm@10.7.0" '.packageManager = $pm' package.json > package.json.tmp && mv package.json.tmp package.json
+
+RUN turbo prune --scope=@documenso/remix --docker
 
 ###########################
 #   INSTALLER CONTAINER   #
