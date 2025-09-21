@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "packages": {
+    "node": "22"
+  },
+  "caches": {
+    "npm-install": { "directory": "/root/.npm", "type": "shared" }
+  },
+  "steps": {
+    "install": {
+      "commands": [
+        "npm ci --legacy-peer-deps"
+      ],
+      "caches": ["npm-install"]
+    },
+    "build": {
+      "inputs": [{ "step": "install" }],
+      "commands": [
+        "npm run prisma:generate",
+        "npm run translate:compile",
+        "npm run build"
+      ]
+    }
+  },
+  "deploy": {
+    "startCommand": "npm run start"
+  }
+}
+
