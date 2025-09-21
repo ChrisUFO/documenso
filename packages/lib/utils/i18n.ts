@@ -4,14 +4,73 @@ import type { MacroMessageDescriptor } from '@lingui/core/macro';
 
 import type { I18nLocaleData, SupportedLanguageCodes } from '../constants/i18n';
 import { APP_I18N_OPTIONS } from '../constants/i18n';
-import { env } from './env';
+
+type Messages = Record<string, string>;
+
+function extractMessages(mod: unknown): Messages | undefined {
+  if (mod && typeof mod === 'object') {
+    const root = mod as Record<string, unknown>;
+
+    if ('messages' in root && typeof root.messages === 'object') {
+      return root.messages as Messages;
+    }
+
+    if ('default' in root && root.default && typeof root.default === 'object') {
+      const def = root.default as Record<string, unknown>;
+
+      if ('messages' in def && typeof def.messages === 'object') {
+        return def.messages as Messages;
+      }
+
+      // Some compilers export the messages object as default directly
+      return def as unknown as Messages;
+    }
+  }
+
+  return undefined;
+}
 
 export async function getTranslations(locale: string) {
-  const extension = env('NODE_ENV') === 'development' ? 'po' : 'mjs';
+  const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
 
-  const { messages } = await import(`../translations/${locale}/web.${extension}`);
+  // Prefer Vite's glob on the client where it's transformed at build time
+  if (isBrowser) {
+    try {
+      const modules = import.meta.glob('../translations/*/web.{po,mjs}') as Record<
+        string,
+        () => Promise<unknown>
+      >;
 
-  return messages;
+      const poKey = `../translations/${locale}/web.po`;
+      const mjsKey = `../translations/${locale}/web.mjs`;
+
+      const loader = modules[poKey] || modules[mjsKey];
+
+      if (loader) {
+        const mod = await loader();
+        const messages = extractMessages(mod);
+        if (messages) return messages;
+      }
+    } catch {
+      // Fall through to dynamic import below
+    }
+  }
+
+  // Fallback for SSR or environments where Vite's transform isn't available
+  try {
+    const mod = (await import(`../translations/${locale}/web.po`)) as unknown;
+    const messages = extractMessages(mod);
+    if (messages) return messages;
+  } catch {
+    // ignore: will try .mjs next
+  }
+
+  const mod2 = (await import(`../translations/${locale}/web.mjs`)) as unknown;
+  const messages2 = extractMessages(mod2);
+  if (!messages2) {
+    throw new Error(`Missing translations for locale: ${locale}`);
+  }
+  return messages2;
 }
 
 export async function dynamicActivate(locale: string) {
