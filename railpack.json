@@ -10,21 +10,19 @@
   "steps": {
     "install": {
       "commands": [
-        "npm ci --legacy-peer-deps"
+        "sh -lc 'for d in . .. ../.. /workspace /app; do if [ -f "$d/package-lock.json" ]; then cd "$d" && npm ci --legacy-peer-deps && exit 0; fi; done; echo "No package-lock.json found"; exit 1'"
       ],
       "caches": ["npm-install"]
     },
     "build": {
       "inputs": [{ "step": "install" }],
       "commands": [
-        "npm run prisma:generate",
-        "npm run translate:compile",
-        "npm run build"
+        "sh -lc 'for d in . .. ../.. /workspace /app; do if [ -f \"$d/package-lock.json\" ]; then cd \"$d\" && npm run prisma:generate && npm run translate:compile && npm run build && exit 0; fi; done; echo \"Could not locate repo root for build\"; exit 1'"
       ]
     }
   },
   "deploy": {
-    "startCommand": "npm run start"
+    "startCommand": "sh -lc 'for d in . .. ../.. /workspace /app; do if [ -f \"$d/package-lock.json\" ]; then cd \"$d\" && npm run start; exit; fi; done; echo \"Could not locate repo root for start\"; exit 1'"
   }
 }
 
