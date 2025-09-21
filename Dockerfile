@@ -7,20 +7,15 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 make g++ ca-certificates openssl \
   && rm -rf /var/lib/apt/lists/*
-# Copy root manifests first
-COPY package.json package-lock.json ./
-# Copy workspace manifests for proper npm workspaces install (better cache)
-COPY apps/*/package.json ./apps/*/package.json
-COPY packages/*/package.json ./packages/*/package.json
+# Copy full repo (simpler, avoids npm ci EUSAGE due to workspace manifest mismatch)
+COPY . .
 RUN npm ci --legacy-peer-deps --no-audit --no-fund
 
 # 2) Build
 FROM node:22-bookworm-slim AS builder
 ENV NODE_ENV=development
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-# Copy full source after deps for better cache reuse
-COPY . .
+COPY --from=deps /app .
 # Generate clients/translations and build workspace
 RUN npm run prisma:generate && npm run translate:compile && npm run build
 
