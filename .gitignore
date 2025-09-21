@@ -57,3 +57,8 @@ logs.json
 # claude
 .claude
 CLAUDE.md
+
+# Signing certificates (do not commit real certs)
+# Keep example cert tracked, ignore only runtime resources
+apps/remix/resources/*.p12
+apps/remix/resources/*.pfx
