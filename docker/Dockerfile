@@ -32,7 +32,7 @@ FROM base AS installer
 RUN apk add --no-cache libc6-compat
 RUN apk add --no-cache jq
 # Required for node_modules/aws-crt
-RUN apk add --no-cache make cmake g++ openssl bash
+RUN apk add --no-cache make cmake g++ openssl bash dos2unix
 
 WORKDIR /app
 
@@ -59,6 +59,9 @@ ENV NEXT_PRIVATE_ENCRYPTION_SECONDARY_KEY="$NEXT_PRIVATE_ENCRYPTION_SECONDARY_KE
 COPY --from=builder /app/ .
 
 RUN npm ci
+
+# Normalize shell script line-endings and ensure executability
+RUN dos2unix apps/remix/.bin/build.sh && chmod +x apps/remix/.bin/build.sh
 
 RUN npm install -g "turbo@^1.9.3"
 
