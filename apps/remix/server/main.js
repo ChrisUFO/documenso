@@ -30,4 +30,6 @@ server.use(
 
 const handler = handle(build, server);
 
-serve({ fetch: handler.fetch, port: 3000 });
+const port = Number(process.env.PORT ?? 3000);
+const hostname = process.env.HOST ?? process.env.HOSTNAME ?? '0.0.0.0';
+serve({ fetch: handler.fetch, port, hostname });
