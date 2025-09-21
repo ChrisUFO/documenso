@@ -57,7 +57,7 @@ ENV NEXT_PRIVATE_ENCRYPTION_SECONDARY_KEY="$NEXT_PRIVATE_ENCRYPTION_SECONDARY_KE
 # ENV TURBO_TOKEN=$TURBO_TOKEN
 
 # First install the dependencies (as they change less often)
-COPY .gitignore .gitignore
+COPY --from=builder /app/.gitignore ./.gitignore
 COPY --from=builder /app/out/json/ .
 COPY --from=builder /app/out/package-lock.json ./package-lock.json
 
@@ -68,7 +68,7 @@ RUN npm ci
 # Then copy all the source code (as it changes more often)
 COPY --from=builder /app/out/full/ .
 # Finally copy the turbo.json file so that we can run turbo commands
-COPY turbo.json turbo.json
+COPY --from=builder /app/turbo.json ./turbo.json
 
 RUN npm install -g "turbo@^1.9.3"
 
@@ -110,7 +110,7 @@ RUN npx prisma generate --schema ./packages/prisma/schema.prisma
 
 
 # Get the start script from docker/
-COPY --chown=nodejs:nodejs ./docker/start.sh /app/apps/remix/start.sh
+COPY --from=builder --chown=nodejs:nodejs /app/docker/start.sh /app/apps/remix/start.sh
 
 WORKDIR /app/apps/remix
 
