@@ -67,10 +67,13 @@ const FormItemContext = React.createContext<FormItemContextValue>({} as FormItem
 
 const FormItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => {
-    const id = React.useId();
+    // Always call useId to preserve hook order, but prefer a stable id based on field name when available.
+    const reactId = React.useId();
+    const fieldContext = React.useContext(FormFieldContext);
+    const stableId = fieldContext?.name ? `field-${String(fieldContext.name)}` : reactId;
 
     return (
-      <FormItemContext.Provider value={{ id }}>
+      <FormItemContext.Provider value={{ id: stableId }}>
         <div ref={ref} className={cn('space-y-2', className)} {...props} />
       </FormItemContext.Provider>
     );
