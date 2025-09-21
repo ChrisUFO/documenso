@@ -11,14 +11,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY . .
 RUN npm ci --legacy-peer-deps --no-audit --no-fund
 
-# 2) Build (only build Remix app and its dependencies)
+# 2) Build (build Remix workspace directly)
 FROM node:22-bookworm-slim AS builder
 ENV NODE_ENV=development
-ENV TURBO_TELEMETRY_DISABLE=1
 WORKDIR /app
 COPY --from=deps /app .
-# Generate clients/translations and build only Remix and its deps
-RUN npm run prisma:generate && npm run translate:compile && npx turbo run build --filter=@documenso/remix^...
+RUN npm run prisma:generate && npm run translate:compile && npm run build -w @documenso/remix
+# Sanity check build outputs
+RUN ls -la apps/remix/build && ls -la apps/remix/build/server && test -f apps/remix/build/server/main.js
 
 # 3) Runtime image
 FROM node:22-bookworm-slim AS runner
