@@ -38,7 +38,8 @@ server.use(
 const handler = handle(build, server);
 
 const port = Number(process.env.PORT ?? 3000);
-const hostname = process.env.HOST ?? process.env.HOSTNAME ?? '0.0.0.0';
+// Bind to all interfaces for PaaS (Railway, etc.). Avoid using container HOST/HOSTNAME.
+const hostname = '0.0.0.0';
 console.log('[server] Starting on', { port, hostname, node: process.version });
 try {
   serve({ fetch: handler.fetch, port, hostname });
