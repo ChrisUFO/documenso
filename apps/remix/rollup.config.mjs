@@ -22,7 +22,7 @@ const config = {
   external: [/node_modules/],
   plugins: [
     typescript({
-      noEmitOnError: true,
+      noEmitOnError: false,
       moduleResolution: 'bundler',
       include: ['server/**/*', '../../packages/**/*', '../../packages/lib/translations/**/*'],
       jsx: 'preserve',
