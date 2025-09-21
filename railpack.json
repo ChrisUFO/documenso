@@ -10,7 +10,7 @@
   "steps": {
     "install": {
       "commands": [
-        "sh -lc 'for d in . .. ../.. /workspace /app; do if [ -f "$d/package-lock.json" ]; then cd "$d" && npm ci --legacy-peer-deps && exit 0; fi; done; echo "No package-lock.json found"; exit 1'"
+        "sh -lc 'for d in . .. ../.. /workspace /app; do if [ -f \"$d/package-lock.json\" ]; then cd \"$d\" && npm ci --legacy-peer-deps && exit 0; fi; done; echo \"No package-lock.json found\"; exit 1'"
       ],
       "caches": ["npm-install"]
     },
@@ -25,4 +25,3 @@
     "startCommand": "sh -lc 'for d in . .. ../.. /workspace /app; do if [ -f \"$d/package-lock.json\" ]; then cd \"$d\" && npm run start; exit; fi; done; echo \"Could not locate repo root for start\"; exit 1'"
   }
 }
-
