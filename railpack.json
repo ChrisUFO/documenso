@@ -1,27 +1,23 @@
 {
   "$schema": "https://schema.railpack.com",
   "provider": "node",
-  "packages": {
-    "node": "22"
-  },
-  "caches": {
-    "npm-install": { "directory": "/root/.npm", "type": "shared" }
-  },
+  "packages": { "node": "22" },
+  "caches": { "npm-install": { "directory": "/root/.npm", "type": "shared" } },
   "steps": {
     "install": {
       "commands": [
-        "sh -lc 'for d in . .. ../.. /workspace /app; do if [ -f \"$d/package-lock.json\" ]; then cd \"$d\" && npm ci --legacy-peer-deps && exit 0; fi; done; echo \"No package-lock.json found\"; exit 1'"
+        "if [ -f package-lock.json ]; then :; elif [ -f ../package-lock.json ]; then cd ..; elif [ -f ../../package-lock.json ]; then cd ../..; elif [ -f /workspace/package-lock.json ]; then cd /workspace; elif [ -f /app/package-lock.json ]; then cd /app; else echo No package-lock.json found; exit 1; fi; npm ci --legacy-peer-deps"
       ],
       "caches": ["npm-install"]
     },
     "build": {
       "inputs": [{ "step": "install" }],
       "commands": [
-        "sh -lc 'for d in . .. ../.. /workspace /app; do if [ -f \"$d/package-lock.json\" ]; then cd \"$d\" && npm run prisma:generate && npm run translate:compile && npm run build && exit 0; fi; done; echo \"Could not locate repo root for build\"; exit 1'"
+        "if [ -f package-lock.json ]; then :; elif [ -f ../package-lock.json ]; then cd ..; elif [ -f ../../package-lock.json ]; then cd ../..; elif [ -f /workspace/package-lock.json ]; then cd /workspace; elif [ -f /app/package-lock.json ]; then cd /app; else echo Repo root not found; exit 1; fi; npm run prisma:generate && npm run translate:compile && npm run build"
       ]
     }
   },
   "deploy": {
-    "startCommand": "sh -lc 'for d in . .. ../.. /workspace /app; do if [ -f \"$d/package-lock.json\" ]; then cd \"$d\" && npm run start; exit; fi; done; echo \"Could not locate repo root for start\"; exit 1'"
+    "startCommand": "if [ -f package-lock.json ]; then :; elif [ -f ../package-lock.json ]; then cd ..; elif [ -f ../../package-lock.json ]; then cd ../..; elif [ -f /workspace/package-lock.json ]; then cd /workspace; elif [ -f /app/package-lock.json ]; then cd /app; else echo Repo root not found; exit 1; fi; npm run start"
   }
 }
