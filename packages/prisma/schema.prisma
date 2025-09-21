@@ -4,7 +4,6 @@ generator kysely {
 
 generator client {
   provider   = "prisma-client-js"
-  engineType = "binary"
 }
 
 generator json {
