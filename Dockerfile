@@ -98,7 +98,7 @@ RUN npx prisma generate --schema ./packages/prisma/schema.prisma
 
 
 # Get the start script from docker/
-COPY --from=builder --chown=nodejs:nodejs /app/docker/start.sh /app/apps/remix/start.sh
+COPY --from=installer --chown=nodejs:nodejs /app/docker/start.sh /app/apps/remix/start.sh
 
 WORKDIR /app/apps/remix
 
