@@ -23,10 +23,12 @@ RUN npm run prisma:generate && npm run translate:compile && npx turbo run build 
 # 3) Runtime image
 FROM node:22-bookworm-slim AS runner
 ENV NODE_ENV=production
-WORKDIR /app
 # Copy built app and prune dev deps
+WORKDIR /app
 COPY --from=builder /app .
-RUN npm prune --omit=dev
+RUN npm prune --omit=dev || true
+# Run Remix server directly without dev-only tools (dotenv, cross-env)
+WORKDIR /app/apps/remix
 EXPOSE 3000
-CMD ["npm", "run", "start", "-w", "@documenso/remix"]
+CMD ["node", "build/server/main.js"]
 
