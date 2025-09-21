@@ -13,6 +13,13 @@ import handle from 'hono-react-router-adapter/node';
 import server from './hono/server/router.js';
 import * as build from './index.js';
 
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason);
+});
+
 server.use(
   serveStatic({
     root: 'build/client',
@@ -32,4 +39,17 @@ const handler = handle(build, server);
 
 const port = Number(process.env.PORT ?? 3000);
 const hostname = process.env.HOST ?? process.env.HOSTNAME ?? '0.0.0.0';
-serve({ fetch: handler.fetch, port, hostname });
+console.log('[server] Starting on', { port, hostname, node: process.version });
+try {
+  serve({ fetch: handler.fetch, port, hostname });
+  console.log('[server] Hono server started');
+} catch (err) {
+  console.error('[server] Failed to start', err);
+  throw err;
+}
+
+// Heartbeat to keep some logs visible in case of silent exit scenarios
+setInterval(() => {
+  // Lightweight heartbeat
+  process.stdout.write('.');
+}, 30000);
