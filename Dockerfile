@@ -20,11 +20,8 @@ COPY . .
 
 RUN npm install -g "turbo@^1.9.3"
 
-# Outputs to the /out folder
-# source: https://turbo.build/repo/docs/reference/command-line-reference/prune#--docker
-RUN jq --arg pm "npm@10.7.0" '.packageManager = $pm' package.json > package.json.tmp && mv package.json.tmp package.json
-
-RUN turbo prune --scope=@documenso/remix --docker
+# Build without prune to avoid Railpack context issues
+# (We keep builder minimal; installer will run install and build)
 
 ###########################
 #   INSTALLER CONTAINER   #
@@ -58,19 +55,10 @@ ENV NEXT_PRIVATE_ENCRYPTION_SECONDARY_KEY="$NEXT_PRIVATE_ENCRYPTION_SECONDARY_KE
 # ARG TURBO_TOKEN
 # ENV TURBO_TOKEN=$TURBO_TOKEN
 
-# First install the dependencies (as they change less often)
-COPY --from=builder /app/.gitignore ./.gitignore
-COPY --from=builder /app/out/json/ .
-COPY --from=builder /app/out/package-lock.json ./package-lock.json
-
-COPY --from=builder /app/lingui.config.ts ./lingui.config.ts
+# Copy full repo from builder and install/build here (no prune)
+COPY --from=builder /app/ .
 
 RUN npm ci
-
-# Then copy all the source code (as it changes more often)
-COPY --from=builder /app/out/full/ .
-# Finally copy the turbo.json file so that we can run turbo commands
-COPY --from=builder /app/turbo.json ./turbo.json
 
 RUN npm install -g "turbo@^1.9.3"
 
@@ -92,18 +80,16 @@ USER nodejs
 
 WORKDIR /app
 
-COPY --from=builder --chown=nodejs:nodejs /app/out/json/ .
-# Copy the tailwind config files across
-COPY --from=builder --chown=nodejs:nodejs /app/out/full/packages/tailwind-config ./packages/tailwind-config
+# Copy built app and runtime dependencies
+COPY --from=installer --chown=nodejs:nodejs /app/node_modules ./node_modules
+# Copy the tailwind config files across (some tools read from it)
+COPY --from=installer --chown=nodejs:nodejs /app/packages/tailwind-config ./packages/tailwind-config
 
-RUN npm ci --only=production
-
-# Automatically leverage output traces to reduce image size
-# https://nodejs.org/docs/advanced-features/output-file-tracing
+# App build output and static assets
 COPY --from=installer --chown=nodejs:nodejs /app/apps/remix/build ./apps/remix/build
 COPY --from=installer --chown=nodejs:nodejs /app/apps/remix/public ./apps/remix/public
 
-# Copy the prisma binary, schema and migrations
+# Prisma schema and migrations
 COPY --from=installer --chown=nodejs:nodejs /app/packages/prisma/schema.prisma ./packages/prisma/schema.prisma
 COPY --from=installer --chown=nodejs:nodejs /app/packages/prisma/migrations ./packages/prisma/migrations
 
