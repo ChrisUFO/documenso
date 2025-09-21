@@ -6,18 +6,18 @@
   "steps": {
     "install": {
       "commands": [
-        "dir=$PWD; while [ \"$dir\" != \"/\" ]; do if [ -f \"$dir/package-lock.json\" ]; then cd \"$dir\"; break; fi; dir=$(dirname \"$dir\"); done; if [ ! -f package-lock.json ]; then for d in /workspace /app /workspace/* /app/*; do if [ -f \"$d/package-lock.json\" ]; then cd \"$d\"; break; fi; done; fi; [ -f package-lock.json ] || { echo \"No package-lock.json found\"; ls -la /workspace /app 2>/dev/null || true; exit 1; }; npm ci --legacy-peer-deps"
+        "dir=$PWD; while [ \"$dir\" != \"/\" ]; do if [ -f \"$dir/package-lock.json\" ]; then cd \"$dir\"; break; fi; dir=$(dirname \"$dir\"); done; if [ ! -f package-lock.json ]; then for d in /workspace /app; do if [ -f \"$d/package-lock.json\" ]; then cd \"$d\"; break; fi; done; fi; if [ ! -f package-lock.json ]; then for d in /workspace/* /app/*; do [ -d \"$d\" ] || continue; if [ -f \"$d/package-lock.json\" ]; then cd \"$d\"; break; fi; done; fi; [ -f package-lock.json ] || { echo \"No package-lock.json found\"; ls -la /workspace /app 2>/dev/null || true; exit 1; }; echo \"Repo root: $(pwd)\"; ls -la package.json package-lock.json 2>/dev/null || true; npm ci --legacy-peer-deps --no-audit --no-fund --prefer-offline"
       ],
       "caches": ["npm-install"]
     },
     "build": {
       "inputs": [{ "step": "install" }],
       "commands": [
-        "dir=$PWD; while [ \"$dir\" != \"/\" ]; do if [ -f \"$dir/package-lock.json\" ]; then cd \"$dir\"; break; fi; dir=$(dirname \"$dir\"); done; if [ ! -f package-lock.json ]; then for d in /workspace /app /workspace/* /app/*; do if [ -f \"$d/package-lock.json\" ]; then cd \"$d\"; break; fi; done; fi; [ -f package-lock.json ] || { echo \"Repo root not found\"; exit 1; }; npm run prisma:generate && npm run translate:compile && npm run build"
+        "dir=$PWD; while [ \"$dir\" != \"/\" ]; do if [ -f \"$dir/package-lock.json\" ]; then cd \"$dir\"; break; fi; dir=$(dirname \"$dir\"); done; if [ ! -f package-lock.json ]; then for d in /workspace /app; do if [ -f \"$d/package-lock.json\" ]; then cd \"$d\"; break; fi; done; fi; if [ ! -f package-lock.json ]; then for d in /workspace/* /app/*; do [ -d \"$d\" ] || continue; if [ -f \"$d/package-lock.json\" ]; then cd \"$d\"; break; fi; done; fi; [ -f package-lock.json ] || { echo \"Repo root not found\"; exit 1; }; echo \"Repo root (build): $(pwd)\"; npm run prisma:generate && npm run translate:compile && npm run build"
       ]
     }
   },
   "deploy": {
-    "startCommand": "dir=$PWD; while [ \"$dir\" != \"/\" ]; do if [ -f \"$dir/package-lock.json\" ]; then cd \"$dir\"; break; fi; dir=$(dirname \"$dir\"); done; if [ ! -f package-lock.json ]; then for d in /workspace /app /workspace/* /app/*; do if [ -f \"$d/package-lock.json\" ]; then cd \"$d\"; break; fi; done; fi; [ -f package-lock.json ] || { echo \"Repo root not found\"; exit 1; }; npm run start"
+    "startCommand": "dir=$PWD; while [ \"$dir\" != \"/\" ]; do if [ -f \"$dir/package-lock.json\" ]; then cd \"$dir\"; break; fi; dir=$(dirname \"$dir\"); done; if [ ! -f package-lock.json ]; then for d in /workspace /app; do if [ -f \"$d/package-lock.json\" ]; then cd \"$d\"; break; fi; done; fi; if [ ! -f package-lock.json ]; then for d in /workspace/* /app/*; do [ -d \"$d\" ] || continue; if [ -f \"$d/package-lock.json\" ]; then cd \"$d\"; break; fi; done; fi; [ -f package-lock.json ] || { echo \"Repo root not found\"; exit 1; }; echo \"Repo root (start): $(pwd)\"; npm run start"
   }
 }
